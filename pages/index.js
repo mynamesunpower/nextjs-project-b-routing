@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import useSWR from "swr";
 import Head from "next/head";
 import Link from "next/link";
+import NewsletterRegistration from "../components/input/newsletter-registration";
 
 function HomePage(props) {
   const [events, setEvents] = useState(props.featuredEvents);
@@ -49,6 +50,7 @@ function HomePage(props) {
           content="find a lot of great events that allow you to evolve..."
         />
       </Head>
+      <NewsletterRegistration />
       <EventList items={events} />
     </div>
   );
