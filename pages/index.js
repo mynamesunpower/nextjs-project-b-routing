@@ -2,6 +2,8 @@ import { getFeaturedEvents } from "../dummy-data";
 import EventList from "../components/events/event-list";
 import { useEffect, useState } from "react";
 import useSWR from "swr";
+import Head from "next/head";
+import Link from "next/link";
 
 function HomePage(props) {
   const [events, setEvents] = useState(props.featuredEvents);
@@ -36,6 +38,17 @@ function HomePage(props) {
 
   return (
     <div>
+      <Head>
+        <title>Hello!</title>
+      </Head>
+      <Head>
+        {/* 최근 것만 취급함! */}
+        <title>Next.js Events</title>
+        <meta
+          name="description"
+          content="find a lot of great events that allow you to evolve..."
+        />
+      </Head>
       <EventList items={events} />
     </div>
   );
