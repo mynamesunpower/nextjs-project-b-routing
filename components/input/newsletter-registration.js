@@ -15,15 +15,19 @@ function NewsletterRegistration() {
       return;
     }
     // fetch user input (state or refs)
-    fetch("/api/newsletter", {
-      method: "POST",
-      body: JSON.stringify({ email: enteredEmail }),
-      headers: { "Content-Type": "application/json" },
-    })
-      .then((res) => res.json())
-      .then(({ message, registeredEmail }) => {
-        console.log(registeredEmail + " " + message);
-      });
+    try {
+      fetch("/api/newsletter", {
+        method: "POST",
+        body: JSON.stringify({ email: enteredEmail }),
+        headers: { "Content-Type": "application/json" },
+      })
+        .then((res) => res.json())
+        .then(({ message }) => {
+          console.log(message);
+        });
+    } catch (e) {
+      console.log(e);
+    }
   }
 
   return (

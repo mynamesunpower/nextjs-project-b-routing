@@ -1,9 +1,5 @@
 import { MongoClient } from "mongodb";
-
-const ATLAS_NAME = process.env.ATLAS_ID;
-const ATLAS_PASSWORD = process.env.ATLAS_SECRET;
-const DATABASE_NAME = `events`;
-
+import { connectDatabase, insertDocument } from "../../api/db-util";
 export default async function handler(request, response) {
   if (request.method === "POST") {
     const { email } = request.body;
@@ -15,14 +11,25 @@ export default async function handler(request, response) {
     }
 
     // data treating!
-    const client = await MongoClient.connect(
-      `mongodb+srv://${ATLAS_NAME}:${ATLAS_PASSWORD}@cluster0.r2ftk.mongodb.net/${DATABASE_NAME}?retryWrites=true&w=majority`
-    );
-    const db = client.db();
+    let client;
+    try {
+      client = await connectDatabase();
+      console.log("client connected!");
+    } catch (e) {
+      response
+        .status(500)
+        .json({ message: "Connecting to the database failed!" });
+      return;
+    }
 
-    await db.collection("newsletter").insertOne({ email: email });
+    try {
+      await insertDocument(client, "newsletter", { email: email });
+      client.close();
+    } catch (e) {
+      response.status(500).json({ message: "Inserting data failed!" });
+      return;
+    }
 
-    client.close();
     // response setting
     response
       .status(201)

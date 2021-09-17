@@ -1,41 +1,54 @@
 import path from "path";
 import fs from "fs";
 import { MongoClient } from "mongodb";
-
-const ATLAS_NAME = process.env.ATLAS_ID;
-const ATLAS_PASSWORD = process.env.ATLAS_SECRET;
-const DATABASE_NAME = `events`;
+import {
+  connectDatabase,
+  insertDocument,
+  getAllDocuments,
+} from "../../../api/db-util";
 
 export default async function handler(req, res) {
   const { eventId } = req.query;
-  const client = await MongoClient.connect(
-    `mongodb+srv://${ATLAS_NAME}:${ATLAS_PASSWORD}@cluster0.r2ftk.mongodb.net/${DATABASE_NAME}?retryWrites=true&w=majority`
-  );
+
+  let client;
+  try {
+    client = await connectDatabase();
+    console.log("client connected!");
+  } catch (e) {
+    res.status(500).json({ message: "Connecting to the database failed!" });
+    return;
+  }
 
   if (req.method === "GET") {
-    const db = client.db();
-    const documents = await db
-      .collection("comments")
-      .find({ eventId })
-      .sort({ _id: -1 })
-      .toArray(); // -1 : desc / 1 : asc / 0 : not sort
+    try {
+      const documents = await getAllDocuments(
+        client,
+        "comments",
+        { eventId },
+        { _id: -1 }
+      );
+      res
+        .status(200)
+        .json({ message: "Fetching Data Success!", data: documents });
+    } catch (e) {
+      res.status(500).json({ message: "Getting comments failed." });
+    }
     // const data = getCommentByEventId(eventId);
-
-    res
-      .status(200)
-      .json({ message: "Fetching Data Success!", data: documents });
   } else if (req.method === "POST") {
     const obj = { ...req.body, eventId };
 
-    const db = client.db();
-    const result = await db.collection("comments").insertOne(obj);
+    let result;
+    try {
+      result = await insertDocument(client, "comments", obj);
+      obj._id = result.insertedId;
+      res
+        .status(201)
+        .json({ message: "Saving Comment Success!", comment: obj });
+    } catch (e) {
+      res.status(500).json({ message: "Inserting comment failed!" });
+    }
     // writeCommentIntoEventId(obj);
-
-    obj.id = result.insertedId;
-
-    res.status(201).json({ message: "Saving Comment Success!", comment: obj });
   }
-
   client.close();
 }
 
